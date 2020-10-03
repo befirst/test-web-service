@@ -5,6 +5,7 @@ require 'socket'
 require './lib/response'
 require './lib/request'
 MAX_EOL = 2
+ROOT_DIR = 'examples';
 
 socket = TCPServer.new(ENV['HOST'], ENV['PORT'])
 
@@ -21,8 +22,9 @@ def handle_request(request_text, client)
 end
 
 def get_requested_data(request)
-  file_path = request.path
-  file = File.read(file_path[1..-1])
+  file_path = ROOT_DIR + request.path
+  puts file_path
+  file = File.read(file_path)
   ext = File.extname(file_path).split('.').last
   content_type_mapping = {
     'html' => 'text/html',
