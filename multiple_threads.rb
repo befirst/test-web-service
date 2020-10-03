@@ -5,7 +5,7 @@ require 'socket'
 require './lib/response'
 require './lib/request'
 MAX_EOL = 2
-ROOT_DIR = 'examples';
+ROOT_DIR = 'public'.freeze
 
 socket = TCPServer.new(ENV['HOST'], ENV['PORT'])
 
@@ -22,7 +22,6 @@ end
 
 def get_requested_data(request)
   file_path = ROOT_DIR + request.path
-  puts file_path
   file = File.read(file_path)
   ext = File.extname(file_path).split('.').last
   content_type_mapping = {
@@ -33,6 +32,7 @@ def get_requested_data(request)
   }
 
   content_type = content_type_mapping.fetch(ext, 'application/octet-stream')
+  puts(File.stat(file_path).mode.to_s(8)[3..5])
 
   [file, content_type]
 end
@@ -56,6 +56,8 @@ def handle_connection(client)
   end
 rescue Errno::ENOENT
   respond_with_error(client, 404, 'The requested resource not found')
+rescue Errno::EACCES
+  respond_with_error(client, 403, "You don't have permissions to access this resource")
 rescue Ecxeption => e
   puts("Error: #{e}")
   respond_with_error(client, 500, 'Internal Server Error')
