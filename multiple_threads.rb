@@ -11,11 +11,10 @@ socket = TCPServer.new(ENV['HOST'], ENV['PORT'])
 
 def handle_request(request_text, client)
   request = Request.new(request_text)
-  puts "#{client.peeraddr[3]} #{request.path}"
+  puts("#{client.peeraddr[3]} #{request.path}")
   file, content_type = get_requested_data(request)
 
   response = Response.new(code: 200, data: file, content_type: content_type)
-
   response.send(client)
 
   client.shutdown
@@ -39,7 +38,7 @@ def get_requested_data(request)
 end
 
 def handle_connection(client)
-  puts "Getting new client #{client}"
+  puts("Getting new client #{client}")
   request_text = ''
   eol_count = 0
 
@@ -55,20 +54,24 @@ def handle_connection(client)
       break
     end
   end
-rescue => e
-  puts "Error: #{e}"
+rescue Errno::ENOENT
+  respond_with_error(client, 404, 'The requested resource not found')
+rescue Ecxeption => e
+  puts("Error: #{e}")
+  respond_with_error(client, 500, 'Internal Server Error')
+end
 
-  response = Response.new(code: 500, data: "Internal Server Error")
+def respond_with_error(client, code, message)
+  response = Response.new(code: code, data: message)
   response.send(client)
 
   client.close
 end
 
-puts "Listening on #{ENV['HOST']}:#{ENV['PORT']}. Press CTRL+C to cancel."
+puts("Listening on #{ENV['HOST']}:#{ENV['PORT']}. Press CTRL+C to cancel.")
 
 loop do
   Thread.start(socket.accept) do |client|
     handle_connection(client)
   end
 end
-
