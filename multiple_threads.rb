@@ -9,14 +9,31 @@ MAX_EOL = 2
 socket = TCPServer.new(ENV['HOST'], ENV['PORT'])
 
 def handle_request(request_text, client)
-  request  = Request.new(request_text)
+  request = Request.new(request_text)
   puts "#{client.peeraddr[3]} #{request.path}"
+  file, content_type = get_requested_data(request)
 
-  response = Response.new(code: 200, data: "Hello, world!")
+  response = Response.new(code: 200, data: file, content_type: content_type)
 
   response.send(client)
 
   client.shutdown
+end
+
+def get_requested_data(request)
+  file_path = request.path
+  file = File.read(file_path[1..-1])
+  ext = File.extname(file_path).split('.').last
+  content_type_mapping = {
+    'html' => 'text/html',
+    'txt' => 'text/plain',
+    'png' => 'image/png',
+    'jpg' => 'image/jpeg',
+  }
+
+  content_type = content_type_mapping.fetch(ext, 'application/octet-stream')
+
+  [file, content_type]
 end
 
 def handle_connection(client)
@@ -35,8 +52,6 @@ def handle_connection(client)
       handle_request(request_text, client)
       break
     end
-
-    sleep 1
   end
 rescue => e
   puts "Error: #{e}"
