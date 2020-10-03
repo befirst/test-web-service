@@ -32,7 +32,6 @@ def get_requested_data(request)
   }
 
   content_type = content_type_mapping.fetch(ext, 'application/octet-stream')
-  puts(File.stat(file_path).mode.to_s(8)[3..5])
 
   [file, content_type]
 end
